@@ -91,7 +91,32 @@ module pattern_generator (
 
     // Exctact the given row
     wire [11:0] game_area_mx;
-    assign game_area_mx = valid_line ? data[(game_area_row)*12 : (game_area_row)*12 + 12] : 12'h000;
+    
+    always @(*) begin
+        case (game_area_row)
+            0: game_area_mx = valid_line ? data[11:0] : 12'h000;
+            1: game_area_mx = valid_line ? data[23:12] : 12'h000;
+            2: game_area_mx = valid_line ? data[35:24] : 12'h000;
+            3: game_area_mx = valid_line ? data[47:36] : 12'h000;
+            4: game_area_mx = valid_line ? data[59:48] : 12'h000;
+            5: game_area_mx = valid_line ? data[71:60] : 12'h000;
+            6: game_area_mx = valid_line ? data[83:72] : 12'h000;
+            7: game_area_mx = valid_line ? data[95:84] : 12'h000;
+            8: game_area_mx = valid_line ? data[107:96] : 12'h000;
+            9: game_area_mx = valid_line ? data[119:108] : 12'h000;
+            10: game_area_mx = valid_line ? data[131:120] : 12'h000;
+            11: game_area_mx = valid_line ? data[143:132] : 12'h000;
+            12: game_area_mx = valid_line ? data[155:144] : 12'h000;
+            13: game_area_mx = valid_line ? data[167:156] : 12'h000;
+            14: game_area_mx = valid_line ? data[179:168] : 12'h000;
+            15: game_area_mx = valid_line ? data[191:180] : 12'h000;
+            16: game_area_mx = valid_line ? data[203:192] : 12'h000;
+            17: game_area_mx = valid_line ? data[215:204] : 12'h000;
+            18: game_area_mx = valid_line ? data[227:216] : 12'h000;
+            19: game_area_mx = valid_line ? data[239:228] : 12'h000;
+            default: game_area_mx = 12'b0;
+        endcase
+    end
 
     // Determine the columns and draw the blocks
     always @ (posedge clk)
