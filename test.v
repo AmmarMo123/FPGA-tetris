@@ -1,5 +1,6 @@
 module test(
    input clock50MHz,
+   input [239:0] data, 
    output [3:0] red,
    output [3:0] blue,
    output [3:0] green,
@@ -107,7 +108,7 @@ module test(
       .rst(reset),
 		.counter_x(counter_x),
 		.counter_y(counter_y),
-		.data(array),
+		.data(data),
 		.r_red(r_red),
 		.r_green(r_green),
 		.r_blue(r_blue)
