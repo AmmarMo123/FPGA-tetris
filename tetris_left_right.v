@@ -3,7 +3,7 @@ module tetris_left_right(
     input rst, //switch
     input action_enter, //switch
     input action_left, //button
-    input action_right. //button
+    input action_right, //button
     output [3:0] red,          // RGB color outputs (for example, controlling the screen color)
     output [3:0] blue,
     output [3:0] green,
@@ -30,11 +30,6 @@ module tetris_left_right(
     reg [3:0] cntr_top;   // Block's top row position
     reg [3:0] cntr_left;  // Block's left column position
 
-    // Control signals for user input
-    reg action_left;   // Left movement input
-    reg action_right;  // Right movement input
-    reg action_enter;  // Start game input
-
     // Left and right borders of the game area
     wire gameborder_left;
     wire gameborder_right;
@@ -48,6 +43,12 @@ module tetris_left_right(
     //reg collision;
     reg check;
     reg checked;
+	 
+	 reg [2:0] rel_cntr;
+	 reg [4:0] abs_cntr;
+	 
+	 reg action_left_d;
+	 reg action_right_d;
 
     // Main state machine logic
     always @ (posedge clk) begin
@@ -58,12 +59,12 @@ module tetris_left_right(
             for (i = 0; i < 20; i = i + 1) begin
                 game_area[i] <= 0;  // Clear game area
             end
-          else if(check) begin
+				checked <= 0;
+        end else if(check) begin
             rel_cntr <= rel_cntr +1;
             abs_cntr <= abs_cntr +1;
             checked <= 1;
             check <= 0;
-        end
         end else begin
             case (gamestate)
                 // State when the game is on the logo/start screen
@@ -86,10 +87,10 @@ module tetris_left_right(
                         game_area_newblock[1] <= 12'b000011000000;  // Same block for simplicity
                         game_area_newblock[2] <= 0;
                         game_area_newblock[3] <= 0;
-                        cntr_top <= 0;  // Top position for new block
+                        cntr_top <= 4;  // Top position for new block
                         cntr_left <= 4; // Left position for new block
                         gamestate <= STATE_MOVING;  // Transition to STATE_MOVING
-                        check <= 1;
+                        checked <= 1;
                         //collision <= 0;
                     end else if (checked) begin
                         gamestate <= STATE_MOVING;
@@ -99,9 +100,9 @@ module tetris_left_right(
                 // State for moving the block
                 STATE_MOVING: begin
                     checked <= 0;
-                    if (action_left && ~gameborder_left) begin
+                    if (action_left_d && ~action_left && ~gameborder_left) begin
                         gamestate <= STATE_LEFT;
-                    end else if (action_right && ~gameborder_right) begin
+                    end else if (action_right_d && ~action_right && ~gameborder_right) begin
                         gamestate <= STATE_RIGHT;
                     end
                 end
@@ -111,7 +112,7 @@ module tetris_left_right(
                     if (~checked) begin
                         // Block can move left
                         check <= 1;
-                        rel_cntr <= 0; // TODO: Check this!!
+                        //rel_cntr <= 0; // TODO: Check this!!
                         abs_cntr <= cntr_top; // TODO: Check this!!
                         for(i=0;i<4;i=i+1) begin
                             game_area_newblock[i] <= {game_area_newblock[i][10:0],1'b0};
@@ -143,19 +144,22 @@ module tetris_left_right(
                 end
             endcase
         end
-    end
 
-    // Loop through all 20 rows of the game area and map them into game_area_vga_data
-    for (row = 0; row < 20; row = row + 1) begin
-        if (row >= cntr_top && row < cntr_top + 4) begin
-            // If the current row corresponds to one of the rows of the falling block
-            // Combine the current game row and the falling block row (OR them together)
-            game_area_vga_data[(row * 12) +: 12] <= game_area[row] | game_area_newblock[row - cntr_top];
-        end else begin
-            // Otherwise, just use the current game area row
-            game_area_vga_data[(row * 12) +: 12] <= game_area[row];
-        end
-    end
+		 // Loop through all 20 rows of the game area and map them into game_area_vga_data
+		 for (row = 0; row < 20; row = row + 1) begin
+			  if (row >= cntr_top && row < cntr_top + 4) begin
+					// If the current row corresponds to one of the rows of the falling block
+					// Combine the current game row and the falling block row (OR them together)
+					game_area_vga_data[(row * 12) +: 12] <= game_area[row] | game_area_newblock[row - cntr_top];
+			  end else begin
+					// Otherwise, just use the current game area row
+					game_area_vga_data[(row * 12) +: 12] <= game_area[row];
+			  end
+		 end
+		 
+		 action_left_d <= action_left;
+		 action_right_d <= action_right;
+	 end
 
     // TODO: FIGURE OUT test DECLARATION AND DATA PROVIDED TO IT!!!!
     // Instantiate the test module
@@ -168,5 +172,6 @@ module tetris_left_right(
         .hsync(hsync),            // Connect the horizontal sync signal
         .vsync(vsync)             // Connect the vertical sync signal
     );
+	 		
 
 endmodule
