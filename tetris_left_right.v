@@ -2,6 +2,7 @@ module tetris_left_right(
     input clk,
     input rst, //switch
     input action_enter, //switch
+    input action_drop, // switch
     input action_left, //button
     input action_right, //button
     output [3:0] red,          // RGB color outputs (for example, controlling the screen color)
@@ -40,15 +41,46 @@ module tetris_left_right(
     integer row;
 
     // Collision detection
-    //reg collision;
+    reg collision;
     reg check;
     reg checked;
 	 
-	 reg [2:0] rel_cntr;
-	 reg [4:0] abs_cntr;
-	 
-	 reg action_left_d;
-	 reg action_right_d;
+	reg [2:0] rel_cntr;
+	reg [4:0] abs_cntr;
+	
+    reg action_fall;
+
+	reg action_left_d;
+	reg action_right_d;
+    reg action_drop_d;
+
+    reg [25:0] gamepoints;
+    reg [25:0] gamelines;
+    reg drop;
+
+    reg [25:0] cntr;
+
+    always @ (posedge clk) begin
+    	 action_left_d <= action_left;
+		 action_right_d <= action_right;
+         action_drop_d <= action_drop;
+	end
+
+    // Logic to determine logic for falling
+    always @ (posedge clk) begin
+        if(rst) begin
+            cntr <= 0;  // Reset the counter
+        end else begin
+            if(~drop && (cntr >= 49999999))
+                cntr <= 0;  // Reset the counter if no drop and the counter exceeds the compare value
+            else if(drop && (cntr >= 4999999))
+                cntr <= 0;  // Reset the counter if drop is active and the counter exceeds the drop value
+            else
+                cntr <= cntr + 1;  // Increment the counter
+        end
+    end
+
+    assign action_fall = drop?(cntr == 4999999):(cntr == 49999999);
 
     // Main state machine logic
     always @ (posedge clk) begin
@@ -56,15 +88,21 @@ module tetris_left_right(
             // Reset game state and variables
             gamestate <= STATE_START;   // Set to STATE_LOGO (start screen)
             check <= 0;
-            for (i = 0; i < 20; i = i + 1) begin
-                game_area[i] <= 0;  // Clear game area
-            end
-				checked <= 0;
+            gamepoints <= 0;
+            gamelines <= 0;
         end else if(check) begin
             rel_cntr <= rel_cntr +1;
             abs_cntr <= abs_cntr +1;
-            checked <= 1;
-            check <= 0;
+            if(~collision && (rel_cntr <4) && (abs_cntr <20)) begin
+                if(game_area[abs_cntr]&game_area_newblock[rel_cntr]) begin
+                    collision <= 1;
+                end
+            end else if((abs_cntr == 20) && (rel_cntr <4) && (game_area_newblock[rel_cntr]!=0))
+                collision <= 1;
+            else begin
+                checked <= 1;
+                check <= 0;
+            end
         end else begin
             case (gamestate)
                 // State when the game is on the logo/start screen
@@ -100,26 +138,37 @@ module tetris_left_right(
                 // State for moving the block
                 STATE_MOVING: begin
                     checked <= 0;
-                    if (action_left_d && ~action_left && ~gameborder_left) begin
+                    if(action_fall) begin // TODO - GENERATE THIS
+                        gamestate <= STATE_FALL;
+                    end else if (action_left_d && ~action_left && ~gameborder_left) begin
                         gamestate <= STATE_LEFT;
                     end else if (action_right_d && ~action_right && ~gameborder_right) begin
                         gamestate <= STATE_RIGHT;
+                    end else if(action_drop_d && ~action_drop) begin
+                        drop <= 1;
                     end
                 end
 
                 // State for handling left movement of the block
                 STATE_LEFT: begin
                     if (~checked) begin
+                        collision <= 0;
                         // Block can move left
                         check <= 1;
-                        //rel_cntr <= 0; // TODO: Check this!!
+                        rel_cntr <= 0; // TODO: Check this!!
                         abs_cntr <= cntr_top; // TODO: Check this!!
                         for(i=0;i<4;i=i+1) begin
                             game_area_newblock[i] <= {game_area_newblock[i][10:0],1'b0};
                         end
                     end else begin
                         // Block cannot move left, stay in current position
-                        cntr_left <= cntr_left - 1;
+                        if(collision) begin
+                            for(i=0;i<4;i=i+1) begin
+                                game_area_newblock[i] <= {1'b0,game_area_newblock[i][11:1]};
+                            end
+                        end else begin
+                            cntr_left <= cntr_left - 1;
+                        end
                         gamestate <= STATE_MOVING;  // Transition back to moving state
                     end
                 end
@@ -127,6 +176,7 @@ module tetris_left_right(
                 // State for handling right movement of the block
                 STATE_RIGHT: begin
                     if(~checked) begin
+                        collision <= 0;
                         check <= 1;
                         rel_cntr <= 0;
                         abs_cntr <= cntr_top;
@@ -134,13 +184,63 @@ module tetris_left_right(
                             game_area_newblock[i] <= {1'b0,game_area_newblock[i][11:1]};
                         end
                     end else begin
-                        cntr_left <= cntr_left+1;
+                         if(collision) begin
+                            for (i=0;i<4;i=i+1) begin
+                                game_area_newblock[i] <= {game_area_newblock[i][10:0],1'b0};
+                            end
+                         end else begin
+                            cntr_left <= cntr_left+1;
+                         end
                         gamestate   <= STATE_MOVING;
                     end
                 end
                 
-                default: begin
-                    gamestate <= STATE_START;  // Default to start screen
+                STATE_FALL: begin
+                    if(~checked) begin
+                        if(cntr_top < 19) begin
+                            collision <= 0;
+                            check <= 1;
+                        end else if(cntr_top == 19 && game_area_newblock[0]!=0) begin
+                            collision <= 1;
+                            checked <= 1;
+                        end
+                        rel_cntr <= 0;
+                        abs_cntr <= cntr_top+1;
+                    end else if(collision) begin  // Collision either with gamespace or game border bottom
+                        // Update gamepsace
+                        for(i=0;i<20;i=i+1) begin
+                            if(i>=cntr_top && (i-cntr_top) < 4)
+                            game_area[i] <= game_area[i] | game_area_newblock[i-cntr_top];
+                        end
+                        gamestate <= STATE_EVAL;
+                        cntr_event <= 0; //TODO: WHAT IS THIS
+                        abs_cntr <= 0; //TODO: WHAT IS THIS
+                    end else begin
+                        cntr_top <= cntr_top + 1;
+                        gamestate <= STATE_MOVING;
+                    end
+                end
+                STATE_EVAL: begin
+                    // If we've reached the 20th row (the bottom of the game area)
+                    if(abs_cntr == 20) begin
+                        gamestate <= STATE_NEWBLOCK; // Transition to the new block state (spawn a new block)
+                        checked <= 0; // Reset the "checked" flag (collision check flag)
+                    end else begin
+                        // If we haven't reached the bottom row yet
+                        abs_cntr <= abs_cntr +1; // Move to the next row (continue checking)
+                        if(game_area[abs_cntr]==12'hFFF) begin
+                            gamelines <= gamelines + 1; // Increment the number of lines cleared
+                            gamepoints <= gamepoints + 100; // Update the total score
+
+                            // Shift all the rows down starting from the current row (i = 19, the last row)
+                            for(i=19;i>0;i=i-1) begin
+                                if(i<=abs_cntr) begin
+                                    game_area[i] <= game_area[i-1]; // Shift the row down by copying it from the row above
+                                end
+                            end
+                            game_area[0]<=12'h000; // Clear the top row (since all rows shift down)
+                        end
+                    end
                 end
             endcase
         end
@@ -159,6 +259,7 @@ module tetris_left_right(
 		 
 		 action_left_d <= action_left;
 		 action_right_d <= action_right;
+         action_drop_d <= action_drop;
 	 end
 
     // TODO: FIGURE OUT test DECLARATION AND DATA PROVIDED TO IT!!!!
