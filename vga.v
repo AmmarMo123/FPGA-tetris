@@ -52,7 +52,7 @@ module vga(
 	// pattern generator
 	pattern_generator pattern_gen(
 		.clk(clk25MHz),
-      .rst(reset),
+		.rst(reset),
 		.counter_x(counter_x),
 		.counter_y(counter_y),
 		.data(data),
