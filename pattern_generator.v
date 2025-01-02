@@ -1,9 +1,9 @@
 module pattern_generator (
-	input clk,
+    input clk,
     input rst,
     input [9:0]   counter_x,      // Horizontal counter
     input [9:0]   counter_y,      // Vertical counter
-	input [239:0] data,           // Input grid
+    input [239:0] data,           // Input grid
     output [3:0]  r_red,          // Red output
     output [3:0]  r_green,        // Green output
     output [3:0]  r_blue          // Blue output
@@ -11,31 +11,31 @@ module pattern_generator (
 
     // Constants to define Tetris grid
     parameter COL_START = 340;
-	parameter COL_END = COL_START + 12*BLOCK_SIZE + 11*GAP;
+    parameter COL_END = COL_START + 12*BLOCK_SIZE + 11*GAP;
     parameter ROW_START = 67;
-	parameter ROW_END = ROW_START + 20*BLOCK_SIZE + 19*GAP;
+    parameter ROW_END = ROW_START + 20*BLOCK_SIZE + 19*GAP;
     parameter BLOCK_SIZE = 17;
     parameter GAP = 4;
     reg [4:0] game_area_row;
     reg valid_line;
-	integer i;
+    integer i;
 
      // Determine which rows to draw the blocks in
-	 always @ (posedge clk) begin
-	 	 if (rst) begin
-			  valid_line <= 0;
-	 		  game_area_row <= 0;
-		 end else begin
-			  valid_line <= 0; // Default to 0 unless a valid line is found
-			  for (i = 0; i < 20; i = i + 1) begin
-					if ((counter_y >= ROW_START + i * (BLOCK_SIZE + GAP)) &&
-						 (counter_y <= ROW_START + i * (BLOCK_SIZE + GAP) + BLOCK_SIZE)) begin
-						 game_area_row <= i; // Set the row index
-						 valid_line <= 1; // Mark the line as valid
-					end
-			  end
-		 end
+     always @ (posedge clk) begin
+	 if (rst) begin
+		  valid_line <= 0;
+		  game_area_row <= 0;
+	 end else begin
+		  valid_line <= 0; // Default to 0 unless a valid line is found
+		  for (i = 0; i < 20; i = i + 1) begin
+				if ((counter_y >= ROW_START + i * (BLOCK_SIZE + GAP)) &&
+					 (counter_y <= ROW_START + i * (BLOCK_SIZE + GAP) + BLOCK_SIZE)) begin
+					 game_area_row <= i; // Set the row index
+					 valid_line <= 1; // Mark the line as valid
+				end
+		  end
 	 end
+     end
 
     // Exctact the given row
     reg [11:0] game_area_mx;
