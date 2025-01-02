@@ -1,14 +1,14 @@
 module game_state_machine (
-	input clk,
+    input clk,
     input rst,
     input start_game, //switch
     input drop, // switch
-	input rotate, // switch
+    input rotate, // switch
     input left, //button
     input right, //button
-	input [2:0] chooseBlock,
-	output reg [239:0] game_space_vga,
-	output reg [7:0] gamepoints
+    input [2:0] chooseBlock,
+    output reg [239:0] game_space_vga,
+    output reg [7:0] gamepoints
 );
 
 	// Game states
