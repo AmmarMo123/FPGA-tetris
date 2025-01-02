@@ -3,7 +3,7 @@ module top(
     input rst,                 // Reset
     input start_game,          // Switch for game control
     input drop,                // Switch for game control
-	input rotate,              // Switch for game control
+    input rotate,              // Switch for game control
     input left,                // Button for game control
     input right,               // Button for game control
     output [3:0] red,          // RGB color outputs
@@ -11,9 +11,8 @@ module top(
     output [3:0] green,
     output hsync,              // Horizontal sync signal for VGA display
     output vsync,              // Vertical sync signal for VGA display
-	output [7:0] disp0,        // Score display (ones)
-	output [7:0] disp1         // Score display (tens)
-	 
+    output [7:0] disp0,        // Score display (ones)
+    output [7:0] disp1         // Score display (tens) 
 );
 	reg [3:0] ones;
 	reg [3:0] tens;
