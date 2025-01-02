@@ -3,7 +3,7 @@ module pattern_generator (
     input rst,
     input [9:0]   counter_x,      // Horizontal counter
     input [9:0]   counter_y,      // Vertical counter
-	 input [239:0] data,           // Input grid
+	input [239:0] data,           // Input grid
     output [3:0]  r_red,          // Red output
     output [3:0]  r_green,        // Green output
     output [3:0]  r_blue          // Blue output
@@ -11,16 +11,16 @@ module pattern_generator (
 
     // Constants to define Tetris grid
     parameter COL_START = 340;
-	 parameter COL_END = COL_START + 12*BLOCK_SIZE + 11*GAP;
+	parameter COL_END = COL_START + 12*BLOCK_SIZE + 11*GAP;
     parameter ROW_START = 67;
-	 parameter ROW_END = ROW_START + 20*BLOCK_SIZE + 19*GAP;
+	parameter ROW_END = ROW_START + 20*BLOCK_SIZE + 19*GAP;
     parameter BLOCK_SIZE = 17;
     parameter GAP = 4;
     reg [4:0] game_area_row;
     reg valid_line;
-	 integer i;
+	integer i;
 
-    // Determine which rows to draw the blocks in
+     // Determine which rows to draw the blocks in
 	 always @ (posedge clk) begin
 	 	 if (rst) begin
 			  valid_line <= 0;
@@ -88,7 +88,7 @@ module pattern_generator (
 			(counter_x >= COL_START - GAP && counter_x <= COL_END + GAP)) begin
 			frame = 1; // Top and bottom borders
 	  end else if ((counter_x == COL_START - GAP || counter_x == COL_END + GAP) &&
-						(counter_y >= ROW_START - GAP && counter_y <= ROW_END + GAP)) begin
+				   (counter_y >= ROW_START - GAP && counter_y <= ROW_END + GAP)) begin
 			frame = 1; // Left and right borders
 	  end
 	end
