@@ -17,8 +17,12 @@ The game is controlled using the DE-10 Lite's buttons and switches. For switch i
 ## Approach in Designing
 This project consists of several key components, which interact as follows:
 
+<img width="588" alt="Screenshot 2025-01-02 at 1 22 02 AM" src="https://github.com/user-attachments/assets/f58947c5-34a7-4de3-a96a-086cc5b900d9" />
+
 ### 1. Game State Machine
 The Game State Machine processes user inputs (movement, rotation, and drops) to update the game space and calculate the score. The primary states are:
+
+<img width="548" alt="Screenshot 2025-01-02 at 1 22 43 AM" src="https://github.com/user-attachments/assets/c49a357c-14ff-4322-8a33-fea1f7df0066" />
 
 - **SPAWN_BLOCK**: Generates a new block represented by a 4x12 array of 0s and 1s.
 - **MOVE_BLOCK**: Decides whether the block should move down, left, right, or rotate, based on user input and a counter controlling the drop pace.
