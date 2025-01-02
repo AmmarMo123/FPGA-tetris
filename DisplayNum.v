@@ -2,8 +2,6 @@ module DisplayNum (num, hex);
 input [3:0] num;
 output [7:0] hex;
 
-//Rewrote code to directly change 0 to 9 rather than 0 to 15 (adjusted Lab 2 code)
-
 reg [7:0] hex;
 	always @(num) begin
 		case (num)
