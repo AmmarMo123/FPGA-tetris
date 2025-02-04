@@ -14,6 +14,9 @@ This project was part of the EECS 3201 course (Digital Logic Design), and was ma
 
 The game is controlled using the DE-10 Lite's buttons and switches. For switch inputs, only the rising and falling edges of the signals are used, enabling single-move operations with a switch flip. The VGA output displays the Tetris grid and falling blocks, while the seven-segment display shows the current score.
 
+## Demo
+[![Watch the video](https://img.youtube.com/vi/ecJROBGXYag/maxresdefault.jpg)](https://www.youtube.com/watch?v=ecJROBGXYag)
+
 ## Approach in Designing
 This project consists of several key components, which interact as follows:
 
